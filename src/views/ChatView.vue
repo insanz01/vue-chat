@@ -15,18 +15,30 @@ export default {
   name: "chat-view",
   data() {
     return {
-      userId: 1,
+      userId: 0,
       name: "anonym",
       message: "",
       chats: [],
       randomString:
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      roomId: "abcdef123456789"
     };
   },
-  created() {
+  mounted() {
+    function getRandomInt(max) {
+      return Math.floor(Math.random() * max);
+    }
+    this.userId = getRandomInt(100);
+
     const name = prompt("What is your name?");
 
     this.name = name;
+
+    const roomId = prompt("Room ID nya kakak !!")
+
+    this.roomId = roomId;
+
+    this.$socket.emit("joinRoom", this.roomId, this.name);
   },
   sockets: {
     connect: function () {
@@ -35,13 +47,22 @@ export default {
     newUser: function () {
       console.log('socket and new user connected')
     },
+    userConnected: function (username) {
+      console.log('socket and new user connected', username)
+    },
     chatMessage: function (data) {
       console.log('this method was fired by the socket server. eg: io.emit("customEmit", data)')
-      console.log(data.message);
-      this.appendMessage(data.message);
-    }
+      console.log(data, this.userId);
+      this.appendMessage(data);
+      if(data.source.user_id != this.userId) {
+        console.log('bagi link bokep tan')
+      }
+    },
   },
   methods: {
+    getRandomInt: function(max) {
+      return Math.floor(Math.random() * max);
+    },
     generateString: function (length) {
       let result = " ";
       const charactersLength = this.randomString.length;
@@ -58,7 +79,7 @@ export default {
       this.chats.push(data);
     },
     sendMessage: function () {
-      console.log(this.message);
+      console.log('pesan', this.message);
 
       const data = {
         id: this.generateString(30),
@@ -71,7 +92,7 @@ export default {
 
       this.$socket.emit("sendChatMessage", data);
 
-      this.appendMessage(data);
+      // this.appendMessage(data);
 
       this.message = "";
     },
