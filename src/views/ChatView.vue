@@ -39,6 +39,8 @@ export default {
     this.roomId = roomId;
 
     this.$socket.emit("joinRoom", this.roomId, this.name);
+
+    this.loadDatabase();
   },
   sockets: {
     connect: function () {
@@ -60,6 +62,22 @@ export default {
     },
   },
   methods: {
+    saveDatabase: function() {
+      const dbName = `chat_${this.roomId}`
+      localStorage.setItem(dbName, JSON.stringify(this.chats));
+    },
+    loadDatabase: function() {
+      const dbName = `chat_${this.roomId}`
+      const chatStore = localStorage.getItem(dbName) || null;
+      let chats = [];
+
+      if(chatStore) {
+        const parseChat = JSON.parse(chatStore);
+        chats = [...parseChat];
+      }
+
+      this.chats = [...chats];
+    },
     getRandomInt: function(max) {
       return Math.floor(Math.random() * max);
     },
@@ -77,6 +95,8 @@ export default {
     appendMessage: function (data) {
 
       this.chats.push(data);
+
+      this.saveDatabase();
     },
     sendMessage: function () {
       console.log('pesan', this.message);
